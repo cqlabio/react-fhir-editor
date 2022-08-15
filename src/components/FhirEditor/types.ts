@@ -6,6 +6,8 @@ export enum PropertyTypesEnum {
   DateTime = "DateTime",
   Decimal = "Decimal",
   Uri = "Uri",
+  Choice = "Choice",
+  NotFound = "NotFound",
   // Boolean = 'Boolean',
   // Instant = 'Instant',
   // TextDisplay = 'TextDisplay',
@@ -18,6 +20,8 @@ export enum PropertyTypesEnum {
 interface BaseProperty {
   propertyType: PropertyTypesEnum;
   propertyName: string;
+  baseChoiceType?: string;
+  definition: fhir4.ElementDefinition;
 }
 
 export interface ElementProperty extends BaseProperty {
@@ -45,6 +49,16 @@ export interface DateTimeProperty extends BaseProperty {
   propertyType: PropertyTypesEnum.DateTime;
 }
 
+export interface ChoiceTypeProperty extends BaseProperty {
+  propertyType: PropertyTypesEnum.Choice;
+  choices: ResourceProperty[];
+}
+
+export interface NotFoundProperty extends BaseProperty {
+  propertyType: PropertyTypesEnum.NotFound;
+  errorMessage: string;
+}
+
 // export interface ResourceProperty {
 //   viewType: PropertyTypesEnum;
 //   dataType: string;
@@ -59,7 +73,9 @@ export type ResourceProperty =
   | BooleanProperty
   | DecimalProperty
   | UriProperty
-  | DateTimeProperty;
+  | DateTimeProperty
+  | ChoiceTypeProperty
+  | NotFoundProperty;
 
 export interface ResourceDefintion {
   properties: ResourceProperty[];

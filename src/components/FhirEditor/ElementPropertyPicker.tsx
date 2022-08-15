@@ -59,6 +59,8 @@ export default function NextPropertyPicker({
         label: property.propertyName,
         disabled: existingKeys.has(property.propertyName),
         onClick: () => handleSelectProperty(property),
+        unsupported: property.propertyType === PropertyTypesEnum.NotFound,
+        baseChoiceType: property.baseChoiceType,
       })),
     },
   ];
@@ -81,7 +83,7 @@ export default function NextPropertyPicker({
           horizontal: "left",
         }}
       >
-        <Box sx={{ padding: "10px 5px", minWidth: "200px" }}>
+        <Box sx={{ padding: "10px 5px", minWidth: "300px" }}>
           {actions.map((section) => (
             <Box key={section.sectionHeader}>
               <Box
@@ -115,6 +117,18 @@ export default function NextPropertyPicker({
                   <Box sx={{ display: "flex", flexGrow: 1 }}>
                     {action.label}
                   </Box>
+
+                  {action.unsupported && (
+                    <Box sx={{ color: "rgb(150,150,150)", fontSize: "12px" }}>
+                      Unsupported
+                    </Box>
+                  )}
+
+                  {action.baseChoiceType && (
+                    <Box sx={{ color: "rgb(150,150,150)", fontSize: "12px" }}>
+                      {action.baseChoiceType}
+                    </Box>
+                  )}
                 </Box>
               ))}
             </Box>

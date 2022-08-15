@@ -4,14 +4,13 @@ import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 
 type StringRendererProps = {
-  property: StringProperty;
+  // property: StringProperty;
   value: any;
   updateValue: (val: string | number) => void;
   isNumber?: boolean;
 };
 
 export default function StringRenderer({
-  property,
   value,
   updateValue,
   isNumber,
@@ -29,9 +28,8 @@ export default function StringRenderer({
   };
 
   return (
-    <Box sx={{ maxWidth: "250px" }}>
+    <Box>
       <TextField
-        fullWidth
         type={isNumber ? "number" : undefined}
         size="small"
         value={value || ""}

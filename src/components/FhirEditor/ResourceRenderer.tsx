@@ -36,13 +36,6 @@ export default function ResourceRenderer({
 
   const existingKeys = new Set(Object.keys(fhirData || {}));
 
-  // const updateFhirDataProperty = (key: string, value: any) => {
-  //   updateFhirData({
-  //     ...fhirData,
-  //     [key]: value
-  //   })
-  // }
-
   const propertyViews = resourceDefinition.properties.map((property) => {
     if (!existingKeys.has(property.propertyName)) {
       return null;
@@ -51,15 +44,13 @@ export default function ResourceRenderer({
     const propertyFhir = fhirData[property.propertyName];
 
     const updateInnerProperty = (value: any) => {
-      updateFhirData({
-        ...fhirData,
-        [property.propertyName]: value,
-      });
-
-      // updateFhirProperty(property.propertyName, {
-      //     ...fhirData,
-      //     [key]: value,
-      //   });
+      const nextFhirData = { ...fhirData };
+      if (value === undefined) {
+        delete nextFhirData[property.propertyName];
+      } else {
+        nextFhirData[property.propertyName] = value;
+      }
+      updateFhirData(nextFhirData);
     };
 
     return (
@@ -76,13 +67,15 @@ export default function ResourceRenderer({
   return (
     <Box>
       {propertyViews}
-
-      <ElementPropertyPicker
-        properties={resourceDefinition.properties}
-        existingKeys={existingKeys}
-        updateFhirData={updateFhirData}
-        fhirData={fhirData}
-      />
+      <Box sx={{ paddingTop: "10px" }}>
+        <ElementPropertyPicker
+          properties={resourceDefinition.properties}
+          existingKeys={existingKeys}
+          updateFhirData={updateFhirData}
+          fhirData={fhirData}
+          isSmall
+        />
+      </Box>
     </Box>
   );
 }
