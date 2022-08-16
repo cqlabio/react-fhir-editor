@@ -34,6 +34,7 @@ export default function StringRenderer({
         size="small"
         value={value || ""}
         onChange={handleValueChange}
+        fullWidth
       />
     </Box>
   );

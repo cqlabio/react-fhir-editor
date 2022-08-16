@@ -9,7 +9,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import {
   buildResourceDefintions,
   getResourceDefintionAtPath,
-  makeResourcePath,
+  getNameFromPath,
 } from "./resourceDefintionBuilder";
 import ElementPropertyPicker from "./ElementPropertyPicker";
 import PropertyRenderer from "./PropertyRenderer";
@@ -66,6 +66,9 @@ export default function FhirEditor({
           resourceDefinitions,
         }}
       >
+        <Box sx={{ paddingBottom: "3px", fontSize: "14px" }}>
+          {getNameFromPath(rootPath)}
+        </Box>
         <ResourceRenderer
           resourcePath={rootPath}
           resourceDefinitions={resourceDefinitions}

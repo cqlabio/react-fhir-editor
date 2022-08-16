@@ -72,6 +72,7 @@ export default function NextPropertyPicker({
         label="Add Property"
         icon={<AddIcon sx={{ fontSize: "20px" }} />}
         size={isSmall ? "small" : undefined}
+        sx={{ background: "#FFECB3", color: "#BF360C", fontSize: "11px" }}
       />
 
       <Popover

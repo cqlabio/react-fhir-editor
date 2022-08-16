@@ -1,4 +1,6 @@
 // import profileTypes from "./profile-types.json";
+import flatten from "lodash/flatten";
+
 import {
   ResourceProperty,
   PropertyTypesEnum,
@@ -18,6 +20,16 @@ export function getNameFromPath(path: string): string {
 
 function capitalizeFirstLetter(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function isArray(elementDef: fhir4.ElementDefinition): boolean {
+  if (!elementDef.max) {
+    return false;
+  }
+  if (elementDef.max === "0" || elementDef.max === "1") {
+    return false;
+  }
+  return true;
 }
 
 export function getResourceDefintionAtPath(
@@ -44,13 +56,45 @@ function parseDefinition(
     return nextResourceDefinitions;
   }
 
-  const properties: ResourceProperty[] = [];
+  function collectNestedElements(
+    path: string,
+    structureDefinition: fhir4.StructureDefinition
+  ): fhir4.ElementDefinition[] {
+    const pathLen = path.split(".");
+
+    return (
+      structureDefinition.snapshot?.element?.filter((element) => {
+        const elementPath = element.path.split(".");
+        return (
+          pathLen.length + 1 === elementPath.length &&
+          element.path.startsWith(path)
+        );
+      }) || []
+    );
+  }
 
   function getPropertyFromCode(
     propertyName: string,
     elementType: fhir4.ElementDefinitionType,
-    definition: fhir4.ElementDefinition
+    definition: fhir4.ElementDefinition,
+    isInNestedArray: boolean
   ): ResourceProperty {
+    if (!isInNestedArray && isArray(definition)) {
+      const nestedProperty = getPropertyFromCode(
+        propertyName,
+        elementType,
+        definition,
+        true
+      );
+
+      return {
+        propertyType: PropertyTypesEnum.Array,
+        propertyName: propertyName,
+        definition: definition,
+        items: nestedProperty,
+      };
+    }
+
     const elementCode = elementType.code;
 
     let newProperty: ResourceProperty | null = null;
@@ -82,8 +126,36 @@ function parseDefinition(
         propertyName: propertyName,
         definition: definition,
       };
+    } else if (elementCode === "decimal") {
+      newProperty = {
+        propertyType: PropertyTypesEnum.Decimal,
+        propertyName: propertyName,
+        definition: definition,
+      };
+    } else if (elementCode === "code") {
+      newProperty = {
+        propertyType: PropertyTypesEnum.String,
+        propertyName: propertyName,
+        definition: definition,
+      };
     } else if (elementCode === "Extension") {
       console.log("FIX ME: Skipping Extension");
+    } else if (elementCode === "BackboneElement") {
+      const nestedElementDefinitions = collectNestedElements(
+        definition.path,
+        structureDefinition
+      );
+
+      const properties = flatten(
+        nestedElementDefinitions.map(transformElementDefinitionToProperty)
+      );
+
+      newProperty = {
+        propertyType: PropertyTypesEnum.NestedElement,
+        propertyName: propertyName,
+        definition: definition,
+        properties: properties,
+      };
     } else {
       const foundDef = structureDefinitionReferncesBundle.entry?.find((res) => {
         return res.resource?.id === elementCode;
@@ -140,26 +212,34 @@ function parseDefinition(
     return newProperty;
   }
 
-  structureDefinition.snapshot?.element.forEach((element) => {
+  function transformElementDefinitionToProperty(
+    element: fhir4.ElementDefinition
+  ): ResourceProperty[] {
+    const properties: ResourceProperty[] = [];
+
+    const paths = element.path.split(".");
+    const propertyName = paths[paths.length - 1];
+
     if (!element.type || element.type.length === 0) {
       console.warn('Expected a "type" property on element', element);
     } else if (element.type.length === 1) {
       let elementType = element.type[0];
-      const paths = element.path.split(".");
 
-      if (paths.length !== 2) {
-        console.warn("Expected element property path with length 2");
-      } else {
-        const propertyName = paths[1];
-        const property = getPropertyFromCode(
-          propertyName,
-          elementType,
-          element
-        );
-        if (property) {
-          properties.push(property);
-        }
+      const property = getPropertyFromCode(
+        propertyName,
+        elementType,
+        element,
+        false
+      );
+      if (property) {
+        properties.push(property);
       }
+
+      // if (paths.length !== 2) {
+      //   console.warn("Expected element property path with length 2");
+      // } else {
+
+      // }
     }
     // ChoiceType element with multiple types
     else {
@@ -168,39 +248,98 @@ function parseDefinition(
       } else {
         // let elementCode = element.type[0].code;
 
-        const paths = element.path.split(".");
-        const lastPath = paths[paths.length - 1];
-        const propertyName = lastPath.slice(0, -3);
+        // const paths = element.path.split(".");
+        // const lastPath = paths[paths.length - 1];
+        const slicedPropertyName = propertyName.slice(0, -3);
 
         element.type.forEach((typeElement) => {
           // const propertyName = paths[1];
-          const nestedPropertyName = `${propertyName}${capitalizeFirstLetter(
+          const nestedPropertyName = `${slicedPropertyName}${capitalizeFirstLetter(
             typeElement.code
           )}`;
           const property = getPropertyFromCode(
             nestedPropertyName,
             typeElement,
-            element
+            element,
+            false
           );
           if (property) {
             properties.push({
               ...property,
-              baseChoiceType: propertyName,
+              baseChoiceType: slicedPropertyName,
             });
           }
         });
-
-        // properties.push({
-        //   propertyType: PropertyTypesEnum.Choice,
-        //   propertyName: propertyName,
-        //   choices: element.type.map(el => {
-        //     const nestedPropertyName = `${propertyName}${capitalizeFirstLetter(el.code)}`
-        //     return getPropertyFromCode(nestedPropertyName, el)
-        //   })
-        // });
       }
     }
-  });
+
+    return properties;
+  }
+
+  const firstTierElementDefinitions =
+    structureDefinition.snapshot?.element.filter((element) => {
+      const paths = element.path.split(".");
+      return paths.length === 2;
+    }) || [];
+
+  const properties = flatten(
+    firstTierElementDefinitions.map(transformElementDefinitionToProperty)
+  );
+
+  // structureDefinition.snapshot?.element.forEach((element) => {
+  //   if (!element.type || element.type.length === 0) {
+  //     console.warn('Expected a "type" property on element', element);
+  //   } else if (element.type.length === 1) {
+  //     let elementType = element.type[0];
+  //     const paths = element.path.split(".");
+
+  //     if (paths.length !== 2) {
+  //       console.warn("Expected element property path with length 2");
+  //     } else {
+  //       const propertyName = paths[1];
+  //       const property = getPropertyFromCode(
+  //         propertyName,
+  //         elementType,
+  //         element,
+  //         false
+  //       );
+  //       if (property) {
+  //         properties.push(property);
+  //       }
+  //     }
+  //   }
+  //   // ChoiceType element with multiple types
+  //   else {
+  //     if (!element.id?.endsWith("[x]")) {
+  //       console.warn(`expected a [x] modifier for id: ${element.id}`);
+  //     } else {
+  //       // let elementCode = element.type[0].code;
+
+  //       const paths = element.path.split(".");
+  //       const lastPath = paths[paths.length - 1];
+  //       const propertyName = lastPath.slice(0, -3);
+
+  //       element.type.forEach((typeElement) => {
+  //         // const propertyName = paths[1];
+  //         const nestedPropertyName = `${propertyName}${capitalizeFirstLetter(
+  //           typeElement.code
+  //         )}`;
+  //         const property = getPropertyFromCode(
+  //           nestedPropertyName,
+  //           typeElement,
+  //           element,
+  //           false
+  //         );
+  //         if (property) {
+  //           properties.push({
+  //             ...property,
+  //             baseChoiceType: propertyName,
+  //           });
+  //         }
+  //       });
+  //     }
+  //   }
+  // });
 
   nextResourceDefinitions[resourceName] = {
     properties: properties,

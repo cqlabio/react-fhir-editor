@@ -31,7 +31,7 @@ export default function ElementRenderer({
   }
 
   return (
-    <Box sx={{ paddingLeft: "20px" }}>
+    <Box>
       <ResourceRenderer
         resourcePath={property.referencePath}
         resourceDefinitions={resourceDefinitions}

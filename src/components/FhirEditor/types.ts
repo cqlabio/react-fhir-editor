@@ -1,6 +1,7 @@
 export enum PropertyTypesEnum {
   // Date = 'Date',
   Element = "Element",
+  NestedElement = "NestedElement",
   String = "String",
   Boolean = "Boolean",
   DateTime = "DateTime",
@@ -8,6 +9,7 @@ export enum PropertyTypesEnum {
   Uri = "Uri",
   Choice = "Choice",
   NotFound = "NotFound",
+  Array = "Array",
   // Boolean = 'Boolean',
   // Instant = 'Instant',
   // TextDisplay = 'TextDisplay',
@@ -24,9 +26,19 @@ interface BaseProperty {
   definition: fhir4.ElementDefinition;
 }
 
+export interface ArrayProperty extends BaseProperty {
+  propertyType: PropertyTypesEnum.Array;
+  items: ResourceProperty;
+}
+
 export interface ElementProperty extends BaseProperty {
   propertyType: PropertyTypesEnum.Element;
   referencePath: string;
+}
+
+export interface NestedElementProperty extends BaseProperty {
+  propertyType: PropertyTypesEnum.NestedElement;
+  properties: ResourceProperty[];
 }
 
 export interface StringProperty extends BaseProperty {
@@ -68,7 +80,9 @@ export interface NotFoundProperty extends BaseProperty {
 // }
 
 export type ResourceProperty =
+  | ArrayProperty
   | ElementProperty
+  | NestedElementProperty
   | StringProperty
   | BooleanProperty
   | DecimalProperty

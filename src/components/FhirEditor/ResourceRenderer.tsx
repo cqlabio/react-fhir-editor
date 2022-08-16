@@ -9,6 +9,7 @@ import {
 import ElementPropertyPicker from "./ElementPropertyPicker";
 import PropertyRenderer from "./PropertyRenderer";
 import { ResourceDefinitions } from "./types";
+import PropertyListRenderer from "./PropertyListRenderer";
 
 type ResourceRendererProps = {
   resourcePath: string;
@@ -34,48 +35,11 @@ export default function ResourceRenderer({
     return <div>Resouce Definition Not Found: {resourcePath}</div>;
   }
 
-  const existingKeys = new Set(Object.keys(fhirData || {}));
-
-  const propertyViews = resourceDefinition.properties.map((property) => {
-    if (!existingKeys.has(property.propertyName)) {
-      return null;
-    }
-
-    const propertyFhir = fhirData[property.propertyName];
-
-    const updateInnerProperty = (value: any) => {
-      const nextFhirData = { ...fhirData };
-      if (value === undefined) {
-        delete nextFhirData[property.propertyName];
-      } else {
-        nextFhirData[property.propertyName] = value;
-      }
-      updateFhirData(nextFhirData);
-    };
-
-    return (
-      <PropertyRenderer
-        key={property.propertyName}
-        property={property}
-        resourceDefinitions={resourceDefinitions}
-        fhirData={propertyFhir}
-        updateFhirData={updateInnerProperty}
-      />
-    );
-  });
-
   return (
-    <Box>
-      {propertyViews}
-      <Box sx={{ paddingTop: "10px" }}>
-        <ElementPropertyPicker
-          properties={resourceDefinition.properties}
-          existingKeys={existingKeys}
-          updateFhirData={updateFhirData}
-          fhirData={fhirData}
-          isSmall
-        />
-      </Box>
-    </Box>
+    <PropertyListRenderer
+      fhirData={fhirData}
+      updateFhirData={updateFhirData}
+      properties={resourceDefinition.properties}
+    />
   );
 }

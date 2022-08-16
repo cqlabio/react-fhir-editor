@@ -9,26 +9,26 @@ import StringRenderer from "./propertyRenderers/StringRenderer";
 import ElementRenderer from "./propertyRenderers/ElementRenderer";
 import DateTimeRenderer from "./propertyRenderers/DateTimeRenderer";
 import CodeableConceptRenderer from "./propertyRenderers/CodeableConceptRenderer";
+import ArrayRenderer from "./propertyRenderers/ArrayRenderer";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { FhirEditorContext } from "./FhirEditor";
 import { getNameFromPath } from "./resourceDefintionBuilder";
+import PropertyValueRenderer from "./PropertyValueRenderer";
 
 type PropertyRendererProps = {
   property: ResourceProperty;
-  resourceDefinitions: ResourceDefinitions;
   fhirData: any;
-
   updateFhirData: (value: any) => void;
 };
 
 export default function PropertyRenderer({
   property,
-  resourceDefinitions,
   fhirData,
   updateFhirData,
 }: PropertyRendererProps) {
-  const { componentOverrides } = useContext(FhirEditorContext);
+  const { componentOverrides, resourceDefinitions } =
+    useContext(FhirEditorContext);
 
   let content = null;
 
@@ -40,68 +40,80 @@ export default function PropertyRenderer({
     alert(property.definition.definition);
   };
 
-  if (property.propertyType === PropertyTypesEnum.String) {
-    content = (
-      <StringRenderer
-        // property={property}
-        value={fhirData}
-        updateValue={updateFhirData}
-      />
-    );
-  }
+  // if (property.propertyType === PropertyTypesEnum.Array) {
+  //   content = (
+  //     <ArrayRenderer
+  //       property={property}
+  //       value={fhirData}
+  //       updateValue={updateFhirData}
+  //     />
+  //   )
+  // }
 
-  if (property.propertyType === PropertyTypesEnum.Uri) {
-    content = (
-      <StringRenderer
-        // property={property}
-        value={fhirData}
-        updateValue={updateFhirData}
-      />
-    );
-  }
+  // if (property.propertyType === PropertyTypesEnum.String) {
+  //   content = (
+  //     <StringRenderer
+  //       // property={property}
+  //       value={fhirData}
+  //       updateValue={updateFhirData}
+  //     />
+  //   );
+  // }
 
-  if (property.propertyType === PropertyTypesEnum.DateTime) {
-    content = (
-      <DateTimeRenderer value={fhirData} updateValue={updateFhirData} />
-    );
-  }
+  // if (property.propertyType === PropertyTypesEnum.Uri) {
+  //   content = (
+  //     <StringRenderer
+  //       // property={property}
+  //       value={fhirData}
+  //       updateValue={updateFhirData}
+  //     />
+  //   );
+  // }
 
-  if (property.propertyType === PropertyTypesEnum.Element) {
-    if (componentOverrides) {
-      const componentName = getNameFromPath(property.referencePath);
+  // if (property.propertyType === PropertyTypesEnum.DateTime) {
+  //   content = (
+  //     <DateTimeRenderer value={fhirData} updateValue={updateFhirData} />
+  //   );
+  // }
 
-      if (componentName in componentOverrides) {
-        content = componentOverrides[componentName](fhirData, updateFhirData);
-      }
-    } else if (!content && property.referencePath === "#/CodeableConcept") {
-      content = (
-        <CodeableConceptRenderer
-          value={fhirData}
-          updateValue={updateFhirData}
-        />
-      );
+  // if (property.propertyType === PropertyTypesEnum.Element) {
+  //   if (componentOverrides) {
+  //     const componentName = getNameFromPath(property.referencePath);
 
-      console.log("piiza", content);
-    } else if (!content) {
-      content = (
-        <ElementRenderer
-          property={property}
-          resourceDefinitions={resourceDefinitions}
-          fhirData={fhirData}
-          updateFhirData={updateFhirData}
-        />
-      );
-    }
-  }
+  //     if (componentName in componentOverrides) {
+  //       content = componentOverrides[componentName](fhirData, updateFhirData);
+  //     }
+  //   }
 
-  if (!content) {
-    content = (
-      <Box>
-        Not Configured: {property.propertyName} with type:{" "}
-        {property.propertyType}
-      </Box>
-    );
-  }
+  //   if (!content && property.referencePath === "#/CodeableConcept") {
+  //     content = (
+  //       <CodeableConceptRenderer
+  //         value={fhirData}
+  //         updateValue={updateFhirData}
+  //       />
+  //     );
+  //   }
+
+  //   if (!content) {
+  //     content = (
+  //       <ElementRenderer
+  //         property={property}
+  //         resourceDefinitions={resourceDefinitions}
+  //         fhirData={fhirData}
+  //         updateFhirData={updateFhirData}
+  //       />
+  //     );
+  //   }
+  // }
+
+  // if (!content) {
+  //   content = (
+  //     <Box>
+  //       Not Configured: {property.propertyName} with type:{" "}
+  //       {property.propertyType}
+  //     </Box>
+  //   );
+  // }
 
   return (
     <Box>
@@ -115,10 +127,6 @@ export default function PropertyRenderer({
         }}
       >
         {property.propertyName}
-        {/* 
-          <Box>
-            {property.definition.definition}
-          </Box> */}
 
         <InfoOutlinedIcon
           onClick={openDescription}
@@ -148,7 +156,11 @@ export default function PropertyRenderer({
         />
       </Box>
 
-      {content}
+      <PropertyValueRenderer
+        property={property}
+        fhirData={fhirData}
+        updateFhirData={updateFhirData}
+      />
     </Box>
   );
 }
