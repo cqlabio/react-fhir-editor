@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { Meta } from "@storybook/react/types-6-0";
 import { Story } from "@storybook/react";
-import FhirEditor, {
-  ComponentOverrides,
-} from "../components/FhirEditor/FhirEditor";
+import FhirEditor, { ComponentOverrides } from "../components/FhirEditor/FhirEditor";
 import conditionDefinition from "./condition.json";
 import profileTypes from "./profile-types.json";
 
@@ -94,12 +92,6 @@ export const SeedCondition = () => {
     resource: conditionDefinition as fhir4.StructureDefinition,
   });
 
-  const componentOverrides: ComponentOverrides = {
-    "#/CodeableConcept": (value: any, updateValue: (data: any) => void) => {
-      return <div>Hello - {JSON.stringify(value)}</div>;
-    },
-  };
-
   return (
     <FhirEditor
       structureDefinitionId="qicore-condition"
@@ -119,11 +111,15 @@ export const CustomCodeableConcept = () => {
     resource: conditionDefinition as fhir4.StructureDefinition,
   });
 
-  const componentOverrides: ComponentOverrides = {
-    CodeableConcept: (value: any, updateValue: (data: any) => void) => {
-      return <div>Hello - {JSON.stringify(value)}</div>;
-    },
-  };
+  const componentOverrides:ComponentOverrides  = {
+    'CodeableConcept': (value: any, updateValue: (data: any) => void) => {
+      return (
+        <div>
+          Hello - {JSON.stringify(value)}
+        </div>
+      )
+    }
+  }
 
   return (
     <FhirEditor
