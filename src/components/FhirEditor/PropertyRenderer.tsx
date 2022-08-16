@@ -1,20 +1,10 @@
-import React, { useCallback, useContext } from "react";
-import {
-  PropertyTypesEnum,
-  ResourceProperty,
-  ResourceDefinitions,
-} from "./types";
+import React, { useCallback, useState } from "react";
+import { ResourceProperty } from "./types";
 import Box from "@mui/material/Box";
-import StringRenderer from "./propertyRenderers/StringRenderer";
-import ElementRenderer from "./propertyRenderers/ElementRenderer";
-import DateTimeRenderer from "./propertyRenderers/DateTimeRenderer";
-import CodeableConceptRenderer from "./propertyRenderers/CodeableConceptRenderer";
-import ArrayRenderer from "./propertyRenderers/ArrayRenderer";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { FhirEditorContext } from "./FhirEditor";
-import { getNameFromPath } from "./resourceDefintionBuilder";
 import PropertyValueRenderer from "./PropertyValueRenderer";
+import PropertyDialog from "./PropertyDialog";
 
 type PropertyRendererProps = {
   property: ResourceProperty;
@@ -27,93 +17,13 @@ export default function PropertyRenderer({
   fhirData,
   updateFhirData,
 }: PropertyRendererProps) {
-  const { componentOverrides, resourceDefinitions } =
-    useContext(FhirEditorContext);
+  const [metaDialogOpen, setMetaDialogOpen] = useState(false);
 
-  let content = null;
+  const toggleMetaDialog = () => setMetaDialogOpen(!metaDialogOpen);
 
   const deleteProperty = useCallback(() => {
     updateFhirData(undefined);
   }, [updateFhirData]);
-
-  const openDescription = () => {
-    alert(property.definition.definition);
-  };
-
-  // if (property.propertyType === PropertyTypesEnum.Array) {
-  //   content = (
-  //     <ArrayRenderer
-  //       property={property}
-  //       value={fhirData}
-  //       updateValue={updateFhirData}
-  //     />
-  //   )
-  // }
-
-  // if (property.propertyType === PropertyTypesEnum.String) {
-  //   content = (
-  //     <StringRenderer
-  //       // property={property}
-  //       value={fhirData}
-  //       updateValue={updateFhirData}
-  //     />
-  //   );
-  // }
-
-  // if (property.propertyType === PropertyTypesEnum.Uri) {
-  //   content = (
-  //     <StringRenderer
-  //       // property={property}
-  //       value={fhirData}
-  //       updateValue={updateFhirData}
-  //     />
-  //   );
-  // }
-
-  // if (property.propertyType === PropertyTypesEnum.DateTime) {
-  //   content = (
-  //     <DateTimeRenderer value={fhirData} updateValue={updateFhirData} />
-  //   );
-  // }
-
-  // if (property.propertyType === PropertyTypesEnum.Element) {
-  //   if (componentOverrides) {
-  //     const componentName = getNameFromPath(property.referencePath);
-
-  //     if (componentName in componentOverrides) {
-  //       content = componentOverrides[componentName](fhirData, updateFhirData);
-  //     }
-  //   }
-
-  //   if (!content && property.referencePath === "#/CodeableConcept") {
-  //     content = (
-  //       <CodeableConceptRenderer
-  //         value={fhirData}
-  //         updateValue={updateFhirData}
-  //       />
-  //     );
-  //   }
-
-  //   if (!content) {
-  //     content = (
-  //       <ElementRenderer
-  //         property={property}
-  //         resourceDefinitions={resourceDefinitions}
-  //         fhirData={fhirData}
-  //         updateFhirData={updateFhirData}
-  //       />
-  //     );
-  //   }
-  // }
-
-  // if (!content) {
-  //   content = (
-  //     <Box>
-  //       Not Configured: {property.propertyName} with type:{" "}
-  //       {property.propertyType}
-  //     </Box>
-  //   );
-  // }
 
   return (
     <Box>
@@ -124,33 +34,42 @@ export default function PropertyRenderer({
           paddingTop: "10px",
           paddingBottom: "2px",
           display: "flex",
+          ":hover": {
+            ".property-icon": {
+              display: "unset",
+            },
+          },
         }}
       >
         {property.propertyName}
 
         <InfoOutlinedIcon
-          onClick={openDescription}
+          onClick={toggleMetaDialog}
+          className="property-icon"
           sx={{
             paddingLeft: "5px",
             fontWeight: 300,
             cursor: "pointer",
             fontSize: "15px",
             color: "rgb(160,160,160)",
+            display: "none",
             ":hover": {
-              color: "secondary.main",
+              color: "#2196F3",
             },
           }}
         />
         <DeleteOutlineIcon
           onClick={deleteProperty}
+          className="property-icon"
           sx={{
             paddingLeft: "5px",
             fontWeight: 300,
             cursor: "pointer",
             fontSize: "15px",
             color: "rgb(160,160,160)",
+            display: "none",
             ":hover": {
-              color: "secondary.main",
+              color: "#EF5350",
             },
           }}
         />
@@ -160,6 +79,11 @@ export default function PropertyRenderer({
         property={property}
         fhirData={fhirData}
         updateFhirData={updateFhirData}
+      />
+      <PropertyDialog
+        isOpen={metaDialogOpen}
+        onToggleOpen={toggleMetaDialog}
+        elementDefinition={property.definition}
       />
     </Box>
   );

@@ -5,15 +5,15 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 
 type CodeableConceptProps = {
   coding: fhir4.Coding;
+  onEdit: () => void;
 };
 
-export default function CodeableConcept({ coding }: CodeableConceptProps) {
+export default function CodeableConcept({
+  coding,
+  onEdit,
+}: CodeableConceptProps) {
   const onDelete = () => {
     console.log("onDelete");
-  };
-
-  const onEdit = () => {
-    console.log("edit");
   };
 
   return (
@@ -51,7 +51,7 @@ export default function CodeableConcept({ coding }: CodeableConceptProps) {
             fontSize: "15px",
             color: "rgb(160,160,160)",
             ":hover": {
-              color: "secondary.main",
+              color: "#FFA726",
             },
           }}
         />
@@ -64,7 +64,7 @@ export default function CodeableConcept({ coding }: CodeableConceptProps) {
             fontSize: "15px",
             color: "rgb(160,160,160)",
             ":hover": {
-              color: "secondary.main",
+              color: "#EF5350",
             },
           }}
         />

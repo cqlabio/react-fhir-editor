@@ -56,17 +56,27 @@ export default function ArrayRenderer({
                 fontSize: "14px",
                 display: "flex",
                 alignItems: "center",
+                ":hover": {
+                  ".array-row-icon": {
+                    display: "unset",
+                  },
+                },
               }}
             >
-              <Box sx={{ flexGrow: 1 }}>{index + 1})</Box>
+              <Box sx={{}}>{index + 1})</Box>
 
               <DeleteOutlineIcon
+                className="array-row-icon"
                 onClick={() => onDeleteVal(index)}
                 sx={{
                   paddingLeft: "5px",
                   cursor: "pointer",
                   fontSize: "14px",
                   color: "rgb(130,130,130)",
+                  display: "none",
+                  ":hover": {
+                    color: "#EF5350",
+                  },
                 }}
               />
             </Box>

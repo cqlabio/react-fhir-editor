@@ -22,7 +22,7 @@ function capitalizeFirstLetter(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function isArray(elementDef: fhir4.ElementDefinition): boolean {
+export function isArrayDef(elementDef: fhir4.ElementDefinition): boolean {
   if (!elementDef.max) {
     return false;
   }
@@ -79,7 +79,7 @@ function parseDefinition(
     definition: fhir4.ElementDefinition,
     isInNestedArray: boolean
   ): ResourceProperty {
-    if (!isInNestedArray && isArray(definition)) {
+    if (!isInNestedArray && isArrayDef(definition)) {
       const nestedProperty = getPropertyFromCode(
         propertyName,
         elementType,
@@ -133,6 +133,12 @@ function parseDefinition(
         definition: definition,
       };
     } else if (elementCode === "code") {
+      newProperty = {
+        propertyType: PropertyTypesEnum.String,
+        propertyName: propertyName,
+        definition: definition,
+      };
+    } else if (elementCode === "canonical") {
       newProperty = {
         propertyType: PropertyTypesEnum.String,
         propertyName: propertyName,
